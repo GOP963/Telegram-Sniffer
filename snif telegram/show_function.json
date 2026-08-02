@@ -1,0 +1,76 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/msys64/mingw64/include"
+            ],
+            "defines": [],
+            "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+            "intelliSenseMode": "gcc-x64",
+            "browse": {
+                "path": [
+                    "${workspaceFolder}",
+                    "C:/msys64/mingw64/include"
+                ],
+                "limitSymbolsToIncludedHeaders": true,
+                "databaseFilename": ""
+            }
+        }
+    ],
+    "version": 4
+}
+
+
+
+
+
+void packet_handler(u_char *user_data, const struct pcap_pkthdr *header, const u_char *packet) {
+    static int count = 0;
+    static char detected_ip[16] = {0};
+
+    // اگر قبلا IP کشف شده، فقط نمایش بده
+    if (detected_ip[0] != '\0') {
+        return;
+    }
+
+    // چک حداقل طول
+    if (header->len < 34) return;
+
+    // چک IPv4
+    if (packet[12] != 0x08 || packet[13] != 0x00) return;
+
+    // آدرس IP را استخراج کن
+    const u_char *ip = packet + 14;
+    char src_ip[16], dest_ip[16];
+    snprintf(src_ip,  sizeof(src_ip),  "%d.%d.%d.%d", ip[12], ip[13], ip[14], ip[15]);
+    snprintf(dest_ip, sizeof(dest_ip), "%d.%d.%d.%d", ip[16], ip[17], ip[18], ip[19]);
+
+    count++;
+
+    printf("[Pkt %d] %s -> %s | Len = %d\n",
+           count, src_ip, dest_ip, header->len);
+
+    // وقتی 3 پکت اول را دریافت کردیم، Target را تعیین کن:
+    if (count == 3) {
+        // اگر پکت‌های خروجی ما از گوشی هستند، Target = مقصد
+        strcpy(detected_ip, dest_ip);
+
+        printf("\n==========================================\n");
+        printf("   Target IP detected: %s\n", detected_ip);
+        printf("==========================================\n\n");
+
+        // اگر می‌خوای بعد 3 پکت Capture قطع شود:
+        // pcap_breakloop((pcap_t*)user_data);
+
+        return;
+    }
+}
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+
