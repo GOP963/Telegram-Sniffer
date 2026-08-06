@@ -10,7 +10,7 @@ int main(){
         printf("NIC Not Found \n");
         return 1;
     }
-    printf("                                                    Your NIC\n");
+    printf("\t\t\t\tYour NIC\n");
     for (d = allodevice; d; d = d->next){
         printf("[*]",d->name);
         if(d->description) printf("(%s)",d->description);
